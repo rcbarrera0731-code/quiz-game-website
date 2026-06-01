@@ -6,6 +6,28 @@
   <title>Quiz Game</title>
   <link rel="stylesheet" href="/css/style.css" />
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    /* Admin Panel Styles */
+    .admin-section { margin-bottom: 2rem; }
+    .admin-quiz-item { background: var(--card, #1e1e2e); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+    .admin-quiz-item h4 { margin: 0; font-size: 1rem; }
+    .admin-quiz-item p { margin: 0.25rem 0 0; font-size: 0.8rem; opacity: 0.6; }
+    .admin-actions { display: flex; gap: 0.5rem; }
+    .btn-edit { background: #3b82f6; color: white; border: none; padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-delete { background: #ef4444; color: white; border: none; padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .btn-edit:hover { background: #2563eb; }
+    .btn-delete:hover { background: #dc2626; }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; opacity: 0.8; }
+    .form-group input, .form-group textarea { width: 100%; padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid #333; background: #111; color: white; font-size: 0.95rem; box-sizing: border-box; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 999; justify-content: center; align-items: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #1e1e2e; border-radius: 12px; padding: 2rem; width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { margin-top: 0; }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+    .admin-notice { background: #fbbf2422; border: 1px solid #fbbf24; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #fbbf24; }
+  </style>
 </head>
 <body>
 
@@ -16,6 +38,7 @@
       <div id="user-info" class="hidden">
         <img id="user-avatar" src="" alt="avatar" />
         <span id="user-name"></span>
+        <button onclick="showPage('page-admin')" class="btn btn-outline" id="admin-btn" style="display:none">Admin</button>
         <button onclick="logout()" class="btn btn-outline">Logout</button>
       </div>
       <div id="login-btn">
@@ -32,7 +55,7 @@
   <div id="page-home" class="page">
     <div class="hero">
       <h1>Welcome to <span>QuizGame</span></h1>
-      <p>Test your knowledge,go in top and climb in Leaderboard</p>
+      <p>Test your knowledge, go in top and climb in Leaderboard</p>
       <div class="hero-btns">
         <button onclick="showPage('page-quizlist')" class="btn btn-primary">Quizzes</button>
         <button onclick="showPage('page-leaderboard')" class="btn btn-outline">Leaderboard</button>
@@ -88,9 +111,65 @@
   <!-- LEADERBOARD PAGE -->
   <div id="page-leaderboard" class="page hidden">
     <div class="container">
-      <h2> Leaderboard</h2>
+      <h2>🏆 Leaderboard</h2>
       <div id="leaderboard-list" class="leaderboard-list"></div>
       <button onclick="showPage('page-home')" class="btn btn-outline mt">← Back</button>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div id="page-admin" class="page hidden">
+    <div class="container">
+      <h2>⚙️ Admin Panel</h2>
+      <div class="admin-notice">⚠️ Admin only — Manage quizzes (Create, Update, Delete)</div>
+
+      <!-- CREATE QUIZ -->
+      <div class="admin-section">
+        <h3>➕ Create New Quiz</h3>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="new-title" placeholder="Quiz title" />
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="new-desc" placeholder="Short description" />
+        </div>
+        <div class="form-group">
+          <label>Questions (JSON format)</label>
+          <textarea id="new-questions" placeholder='[{"text":"What is 2+2?","options":["1","2","3","4"],"correctIndex":3}]'></textarea>
+        </div>
+        <button onclick="createQuiz()" class="btn btn-primary">Create Quiz</button>
+        <p id="create-msg" style="margin-top:0.5rem;color:#4ade80;"></p>
+      </div>
+
+      <!-- MANAGE QUIZZES -->
+      <div class="admin-section">
+        <h3>📋 Manage Existing Quizzes</h3>
+        <div id="admin-quiz-list">Loading...</div>
+      </div>
+
+      <button onclick="showPage('page-home')" class="btn btn-outline mt">← Back</button>
+    </div>
+  </div>
+
+  <!-- EDIT MODAL -->
+  <div class="modal-overlay" id="edit-modal">
+    <div class="modal">
+      <h3>✏️ Edit Quiz</h3>
+      <input type="hidden" id="edit-id" />
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="edit-title" />
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <input type="text" id="edit-desc" />
+      </div>
+      <div class="modal-actions">
+        <button onclick="saveEdit()" class="btn btn-primary">Save Changes</button>
+        <button onclick="closeModal()" class="btn btn-outline">Cancel</button>
+      </div>
+      <p id="edit-msg" style="margin-top:0.5rem;color:#4ade80;"></p>
     </div>
   </div>
 
